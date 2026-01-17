@@ -15,6 +15,11 @@ addOnUISdk.ready.then(async () => {
     const colorBar = document.getElementById("colorBar");
     const importButton = document.getElementById("importButton");
     const swapButton = document.getElementById("swapButton");
+    const filePickerButton = document.getElementById("filePickerButton");
+    const color1Preview = document.getElementById("color1Preview");
+    const color2Preview = document.getElementById("color2Preview");
+    const swapPreviewContainer = document.getElementById("swapPreviewContainer");
+    const swapHelperText = document.getElementById("swapHelperText");
     
     if (!imageUpload) {
         console.error("Image upload element not found!");
@@ -30,6 +35,10 @@ addOnUISdk.ready.then(async () => {
     }
     if (!swapButton) {
         console.error("Swap button element not found!");
+        return;
+    }
+    if (!filePickerButton) {
+        console.error("File picker button element not found!");
         return;
     }
     
@@ -122,7 +131,99 @@ addOnUISdk.ready.then(async () => {
 
     // Update swap button state based on selection
     function updateSwapButtonState() {
-        swapButton.disabled = selectedColorIndices.length !== 2;
+        const hasTwoColors = selectedColorIndices.length === 2;
+        swapButton.disabled = !hasTwoColors;
+        
+        // Update helper text
+        if (hasTwoColors) {
+            swapHelperText.style.opacity = "0.6";
+            swapHelperText.textContent = "Ready to swap!";
+        } else if (selectedColorIndices.length === 1) {
+            swapHelperText.style.opacity = "1";
+            swapHelperText.textContent = "Select one more color to enable swapping";
+        } else {
+            swapHelperText.style.opacity = "1";
+            swapHelperText.textContent = "Select two colors to enable swapping";
+        }
+    }
+
+    // Update preview boxes
+    function updatePreviewBoxes() {
+        if (!currentPaletteData || currentPaletteData.length === 0) {
+            return;
+        }
+        
+        // Clear preview boxes
+        const existingColor1 = color1Preview.querySelector(".swap-preview-color");
+        const existingColor2 = color2Preview.querySelector(".swap-preview-color");
+        const placeholder1 = color1Preview.querySelector(".swap-preview-placeholder");
+        const placeholder2 = color2Preview.querySelector(".swap-preview-placeholder");
+        
+        // Remove existing color divs
+        if (existingColor1) existingColor1.remove();
+        if (existingColor2) existingColor2.remove();
+        
+        // Reset classes
+        color1Preview.classList.remove("has-color");
+        color2Preview.classList.remove("has-color");
+        swapPreviewContainer.classList.remove("has-colors");
+        
+        // Show placeholders
+        if (!placeholder1) {
+            const p1 = document.createElement("div");
+            p1.className = "swap-preview-placeholder";
+            p1.style.cssText = "color: var(--spectrum-global-color-gray-500); font-size: 10px; padding: 8px;";
+            p1.textContent = "Select";
+            color1Preview.appendChild(p1);
+        } else {
+            placeholder1.style.display = "block";
+        }
+        
+        if (!placeholder2) {
+            const p2 = document.createElement("div");
+            p2.className = "swap-preview-placeholder";
+            p2.style.cssText = "color: var(--spectrum-global-color-gray-500); font-size: 10px; padding: 8px;";
+            p2.textContent = "Select";
+            color2Preview.appendChild(p2);
+        } else {
+            placeholder2.style.display = "block";
+        }
+        
+        // Update with selected colors
+        if (selectedColorIndices.length >= 1 && currentPaletteData[selectedColorIndices[0]]) {
+            const index1 = selectedColorIndices[0];
+            const color1 = currentPaletteData[index1].color;
+            const [r1, g1, b1] = color1;
+            const hex1 = rgbToHex(r1, g1, b1);
+            const textColor1 = isLightColor(r1, g1, b1) ? "#000000" : "#FFFFFF";
+            
+            if (placeholder1) placeholder1.style.display = "none";
+            const div1 = document.createElement("div");
+            div1.className = "swap-preview-color";
+            div1.style.backgroundColor = hex1;
+            div1.style.color = textColor1;
+            div1.textContent = `${currentPaletteData[index1].percentage.toFixed(1)}%`;
+            color1Preview.appendChild(div1);
+            color1Preview.classList.add("has-color");
+        }
+        
+        if (selectedColorIndices.length >= 2 && currentPaletteData[selectedColorIndices[1]]) {
+            const index2 = selectedColorIndices[1];
+            const color2 = currentPaletteData[index2].color;
+            const [r2, g2, b2] = color2;
+            const hex2 = rgbToHex(r2, g2, b2);
+            const textColor2 = isLightColor(r2, g2, b2) ? "#000000" : "#FFFFFF";
+            
+            if (placeholder2) placeholder2.style.display = "none";
+            const div2 = document.createElement("div");
+            div2.className = "swap-preview-color";
+            div2.style.backgroundColor = hex2;
+            div2.style.color = textColor2;
+            div2.textContent = `${currentPaletteData[index2].percentage.toFixed(1)}%`;
+            color2Preview.appendChild(div2);
+            color2Preview.classList.add("has-color");
+            swapPreviewContainer.classList.add("has-colors");
+        }
     }
 
     // Render color palette with selection state
@@ -135,16 +236,25 @@ addOnUISdk.ready.then(async () => {
             const hexColor = rgbToHex(r, g, b);
             const textColor = isLightColor(r, g, b) ? "#000000" : "#FFFFFF";
             const isSelected = selectedColorIndices.includes(index);
+            const selectionIndex = selectedColorIndices.indexOf(index); // 0 for Color 1, 1 for Color 2, -1 if not selected
             
             const segment = document.createElement("div");
             segment.className = "color-segment" + (isSelected ? " selected" : "");
             segment.style.backgroundColor = hexColor;
             segment.style.color = textColor;
             segment.style.width = `${percentage}%`;
-            segment.style.minWidth = percentage > 0 ? "40px" : "0";
+            segment.style.minWidth = percentage > 0 ? "50px" : "0";
             segment.textContent = `${percentage.toFixed(1)}%`;
             segment.title = `RGB(${r}, ${g}, ${b}) - ${hexColor}`;
             segment.dataset.colorIndex = index;
+            
+            // Add color label if selected
+            if (isSelected && selectionIndex >= 0) {
+                const label = document.createElement("div");
+                label.className = "color-label";
+                label.textContent = `Color ${selectionIndex + 1}`;
+                segment.appendChild(label);
+            }
             
             // Add click handler for color selection
             segment.addEventListener("click", () => {
@@ -162,6 +272,7 @@ addOnUISdk.ready.then(async () => {
                 
                 renderColorPalette();
                 updateSwapButtonState();
+                updatePreviewBoxes();
             });
             
             colorBar.appendChild(segment);
@@ -300,14 +411,23 @@ addOnUISdk.ready.then(async () => {
         });
     }
 
+    // Handle file picker button click
+    filePickerButton.addEventListener("click", () => {
+        imageUpload.click();
+    });
+
     // Handle file upload
     imageUpload.addEventListener("change", async (event) => {
         console.log("File selected");
         const file = event.target.files[0];
         if (!file || !file.type.startsWith("image/")) {
             console.log("Invalid file type");
+            filePickerButton.textContent = "Choose File";
             return;
         }
+
+        // Update button text
+        filePickerButton.textContent = file.name.length > 25 ? file.name.substring(0, 22) + "..." : file.name;
 
         // Show loading state
         colorBar.innerHTML = "<div style='padding: 16px; text-align: center;'>Processing image...</div>";
@@ -357,6 +477,7 @@ addOnUISdk.ready.then(async () => {
                     
                     // Reset selection
                     selectedColorIndices = [];
+                    updatePreviewBoxes();
                     
                     // Keep image in DOM for preview (make it visible)
                     img.style.display = "block";
@@ -546,5 +667,6 @@ addOnUISdk.ready.then(async () => {
         // Re-render palette
         renderColorPalette();
         updateSwapButtonState();
+        updatePreviewBoxes();
     });
 });
