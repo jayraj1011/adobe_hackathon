@@ -223,7 +223,7 @@
                 font-weight: 700;
                 text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7),
                              0 0 8px rgba(0, 0, 0, 0.3);
-                transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
                 cursor: pointer;
                 position: relative;
                 border-radius: 10px;
@@ -265,12 +265,32 @@
                 border: 3px solid var(--spectrum-global-color-blue-600);
                 outline: 3px solid var(--spectrum-global-color-blue-400);
                 outline-offset: 3px;
-                transform: translateY(-4px) scale(1.06);
+                transform: translateY(-4px) scale(1.05);
                 box-shadow: 0 10px 28px rgba(20, 115, 230, 0.5),
                             0 0 0 6px rgba(20, 115, 230, 0.15),
                             0 0 20px rgba(20, 115, 230, 0.3);
                 z-index: 3;
-                animation: selectedPulse 2s ease-in-out infinite;
+                transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .color-segment-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+            }
+
+            .color-segment-percentage {
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            .color-segment-hex {
+                font-size: 9px;
+                font-weight: 600;
+                opacity: 0.85;
+                letter-spacing: 0.5px;
             }
 
             @keyframes selectedPulse {
@@ -494,6 +514,23 @@
                 gap: 8px;
             }
 
+            .swap-success-message {
+                font-size: 12px;
+                color: #2ecc71;
+                text-align: center;
+                margin-top: 4px;
+                font-weight: 600;
+                opacity: 0;
+                transform: translateY(-4px);
+                transition: all 0.2s ease;
+                pointer-events: none;
+            }
+
+            .swap-success-message.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
             #swapButton {
                 width: 100%;
             }
@@ -550,12 +587,15 @@
                     <div id="fileInputWrapper">
                         <input type="file" id="imageUpload" accept="image/*" />
                         <sp-button id="filePickerButton" variant="primary" style="width: 100%">
-                            Choose File
+                            Upload Image
                         </sp-button>
                     </div>
-                    <sp-button id="importButton" variant="secondary" style="width: 100%; margin-top: 8px;">
-                        Import to Document
-                    </sp-button>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <sp-button id="importButton" variant="secondary" style="width: 100%; margin-top: 8px;" disabled>
+                            Import to Document
+                        </sp-button>
+                        <p class="helper-text" id="importHelperText" style="margin-top: -4px; font-size: 11px;">Upload an image to enable import</p>
+                    </div>
                 </div>
 
                 <!-- Color Palette Section -->
@@ -581,6 +621,7 @@
                     <div class="swap-button-wrapper">
                         <sp-button id="swapButton" variant="accent" disabled>Swap Colors</sp-button>
                         <p class="swap-helper-text" id="swapHelperText">Select two colors to enable swapping</p>
+                        <p class="swap-success-message" id="swapSuccessMessage">Colors swapped successfully</p>
                     </div>
                 </div>
             </div>

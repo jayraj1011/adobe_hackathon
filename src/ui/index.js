@@ -20,6 +20,8 @@ addOnUISdk.ready.then(async () => {
     const color2Preview = document.getElementById("color2Preview");
     const swapPreviewContainer = document.getElementById("swapPreviewContainer");
     const swapHelperText = document.getElementById("swapHelperText");
+    const swapSuccessMessage = document.getElementById("swapSuccessMessage");
+    const importHelperText = document.getElementById("importHelperText");
     
     if (!imageUpload) {
         console.error("Image upload element not found!");
@@ -282,9 +284,28 @@ addOnUISdk.ready.then(async () => {
             segment.style.color = textColor;
             segment.style.width = `${percentage}%`;
             segment.style.minWidth = percentage > 0 ? "50px" : "0";
-            segment.textContent = `${percentage.toFixed(1)}%`;
             segment.title = `RGB(${r}, ${g}, ${b}) - ${hexColor}`;
             segment.dataset.colorIndex = index;
+            
+            // Create content wrapper for percentage and HEX
+            const contentWrapper = document.createElement("div");
+            contentWrapper.className = "color-segment-content";
+            
+            // Add percentage
+            const percentageSpan = document.createElement("div");
+            percentageSpan.className = "color-segment-percentage";
+            percentageSpan.textContent = `${percentage.toFixed(1)}%`;
+            percentageSpan.style.color = textColor;
+            
+            // Add HEX code
+            const hexSpan = document.createElement("div");
+            hexSpan.className = "color-segment-hex";
+            hexSpan.textContent = hexColor.toUpperCase();
+            hexSpan.style.color = textColor;
+            
+            contentWrapper.appendChild(percentageSpan);
+            contentWrapper.appendChild(hexSpan);
+            segment.appendChild(contentWrapper);
             
             // Add color label if selected
             if (isSelected && selectionIndex >= 0) {
@@ -460,7 +481,11 @@ addOnUISdk.ready.then(async () => {
         const file = event.target.files[0];
         if (!file || !file.type.startsWith("image/")) {
             console.log("Invalid file type");
-            filePickerButton.textContent = "Choose File";
+            filePickerButton.textContent = "Upload Image";
+            // Ensure import button stays disabled on invalid file
+            importButton.setAttribute("disabled", "");
+            importButton.setAttribute("aria-disabled", "true");
+            importHelperText.style.display = "block";
             return;
         }
 
@@ -541,6 +566,11 @@ addOnUISdk.ready.then(async () => {
                     // Render color palette
                     renderColorPalette();
                     updateSwapButtonState();
+                    
+                    // Enable import button after successful image load
+                    importButton.removeAttribute("disabled");
+                    importButton.setAttribute("aria-disabled", "false");
+                    importHelperText.style.display = "none";
                 } catch (error) {
                     console.error("Error extracting colors:", error);
                     // Remove temporary image if still in DOM
@@ -548,6 +578,10 @@ addOnUISdk.ready.then(async () => {
                         document.body.removeChild(img);
                     }
                     colorBar.innerHTML = `<div style='padding: 16px; color: red;'>Error: ${error.message}. Please try another image.</div>`;
+                    // Keep import button disabled on error
+                    importButton.setAttribute("disabled", "");
+                    importButton.setAttribute("aria-disabled", "true");
+                    importHelperText.style.display = "block";
                 }
             };
             
@@ -557,6 +591,10 @@ addOnUISdk.ready.then(async () => {
                     document.body.removeChild(img);
                 }
                 colorBar.innerHTML = "<div style='padding: 16px; color: red;'>Failed to load image. Please try another image.</div>";
+                // Keep import button disabled on error
+                importButton.setAttribute("disabled", "");
+                importButton.setAttribute("aria-disabled", "true");
+                importHelperText.style.display = "block";
             };
             
             img.src = e.target.result;
@@ -565,6 +603,10 @@ addOnUISdk.ready.then(async () => {
         reader.onerror = (error) => {
             console.error("FileReader error:", error);
             colorBar.innerHTML = "<div style='padding: 16px; color: red;'>Failed to read file. Please try another image.</div>";
+            // Keep import button disabled on error
+            importButton.setAttribute("disabled", "");
+            importButton.setAttribute("aria-disabled", "true");
+            importHelperText.style.display = "block";
         };
         
         reader.readAsDataURL(file);
@@ -706,5 +748,11 @@ addOnUISdk.ready.then(async () => {
         renderColorPalette();
         updateSwapButtonState();
         updatePreviewBoxes();
+        
+        // Show success message
+        swapSuccessMessage.classList.add("show");
+        setTimeout(() => {
+            swapSuccessMessage.classList.remove("show");
+        }, 1500);
     });
 });
