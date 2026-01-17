@@ -202,7 +202,21 @@ addOnUISdk.ready.then(async () => {
             div1.className = "swap-preview-color";
             div1.style.backgroundColor = hex1;
             div1.style.color = textColor1;
-            div1.textContent = `${currentPaletteData[index1].percentage.toFixed(1)}%`;
+            
+            // Create HEX value display
+            const hexSpan1 = document.createElement("div");
+            hexSpan1.className = "swap-preview-hex";
+            hexSpan1.textContent = hex1.toUpperCase();
+            hexSpan1.style.color = textColor1;
+            
+            // Create percentage display
+            const percentSpan1 = document.createElement("div");
+            percentSpan1.className = "swap-preview-percentage";
+            percentSpan1.textContent = `${currentPaletteData[index1].percentage.toFixed(1)}%`;
+            percentSpan1.style.color = textColor1;
+            
+            div1.appendChild(hexSpan1);
+            div1.appendChild(percentSpan1);
             color1Preview.appendChild(div1);
             color1Preview.classList.add("has-color");
         }
@@ -219,7 +233,21 @@ addOnUISdk.ready.then(async () => {
             div2.className = "swap-preview-color";
             div2.style.backgroundColor = hex2;
             div2.style.color = textColor2;
-            div2.textContent = `${currentPaletteData[index2].percentage.toFixed(1)}%`;
+            
+            // Create HEX value display
+            const hexSpan2 = document.createElement("div");
+            hexSpan2.className = "swap-preview-hex";
+            hexSpan2.textContent = hex2.toUpperCase();
+            hexSpan2.style.color = textColor2;
+            
+            // Create percentage display
+            const percentSpan2 = document.createElement("div");
+            percentSpan2.className = "swap-preview-percentage";
+            percentSpan2.textContent = `${currentPaletteData[index2].percentage.toFixed(1)}%`;
+            percentSpan2.style.color = textColor2;
+            
+            div2.appendChild(hexSpan2);
+            div2.appendChild(percentSpan2);
             color2Preview.appendChild(div2);
             color2Preview.classList.add("has-color");
             swapPreviewContainer.classList.add("has-colors");
